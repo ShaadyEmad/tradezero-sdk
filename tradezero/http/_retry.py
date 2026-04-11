@@ -36,7 +36,7 @@ def _is_retryable(exc: BaseException) -> bool:
     """
     if isinstance(exc, httpx.TransportError):
         return True
-    if isinstance(exc, (RateLimitError, ServerError)):
+    if isinstance(exc, RateLimitError | ServerError):
         return True
     return False
 
