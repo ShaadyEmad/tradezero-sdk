@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from tradezero.enums import LocateTypeStr
 from tradezero.models.locates import (
@@ -34,7 +34,7 @@ class LocatesModule:
         symbol: str,
         quantity: int,
         quote_req_id: str,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Submit a locate quote request.
 
         Args:
@@ -50,12 +50,12 @@ class LocatesModule:
             account=account,
             symbol=symbol,
             quantity=quantity,
-            quoteReqID=quote_req_id,
+            quote_req_id=quote_req_id,
         )
-        return self._http.post(
+        return cast(dict[str, Any], self._http.post(
             "/accounts/locates/quote",
             json=payload.model_dump(by_alias=True),
-        )
+        ))
 
     def get_inventory(self, account_id: str) -> list[LocateInventoryItem]:
         """Return active locate inventory available for the day.
@@ -88,7 +88,7 @@ class LocatesModule:
             data = data.get("locateHistory", [])
         return [LocateHistoryItem.model_validate(item) for item in data]
 
-    def accept_quote(self, account_id: str, quote_req_id: str) -> dict:
+    def accept_quote(self, account_id: str, quote_req_id: str) -> dict[str, Any]:
         """Accept an offered locate quote.
 
         Args:
@@ -98,11 +98,11 @@ class LocatesModule:
         Returns:
             Raw API response dict.
         """
-        payload = LocateAcceptRequest(accountId=account_id, quoteReqID=quote_req_id)
-        return self._http.post(
+        payload = LocateAcceptRequest(account_id=account_id, quote_req_id=quote_req_id)
+        return cast(dict[str, Any], self._http.post(
             "/accounts/locates/accept",
             json=payload.model_dump(by_alias=True),
-        )
+        ))
 
     def sell_locate(
         self,
@@ -111,7 +111,7 @@ class LocatesModule:
         quote_req_id: str,
         quantity: int,
         locate_type: LocateTypeStr | str,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Sell (credit back) locate inventory.
 
         Args:
@@ -127,14 +127,14 @@ class LocatesModule:
         payload = LocateSellRequest(
             account=account,
             symbol=symbol,
-            quoteReqID=quote_req_id,
+            quote_req_id=quote_req_id,
             quantity=quantity,
-            locateType=LocateTypeStr(locate_type),
+            locate_type=LocateTypeStr(locate_type),
         )
-        return self._http.post(
+        return cast(dict[str, Any], self._http.post(
             "/accounts/locates/sell",
             json=payload.model_dump(by_alias=True),
-        )
+        ))
 
     def cancel_locate(self, account_id: str, quote_req_id: str) -> None:
         """Cancel an offered locate quote or a pending sell request.
@@ -164,18 +164,18 @@ class AsyncLocatesModule:
         symbol: str,
         quantity: int,
         quote_req_id: str,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Async version of :meth:`LocatesModule.request_quote`."""
         payload = LocateQuoteRequest(
             account=account,
             symbol=symbol,
             quantity=quantity,
-            quoteReqID=quote_req_id,
+            quote_req_id=quote_req_id,
         )
-        return await self._http.post(
+        return cast(dict[str, Any], await self._http.post(
             "/accounts/locates/quote",
             json=payload.model_dump(by_alias=True),
-        )
+        ))
 
     async def get_inventory(self, account_id: str) -> list[LocateInventoryItem]:
         """Async version of :meth:`LocatesModule.get_inventory`."""
@@ -191,13 +191,13 @@ class AsyncLocatesModule:
             data = data.get("locateHistory", [])
         return [LocateHistoryItem.model_validate(item) for item in data]
 
-    async def accept_quote(self, account_id: str, quote_req_id: str) -> dict:
+    async def accept_quote(self, account_id: str, quote_req_id: str) -> dict[str, Any]:
         """Async version of :meth:`LocatesModule.accept_quote`."""
-        payload = LocateAcceptRequest(accountId=account_id, quoteReqID=quote_req_id)
-        return await self._http.post(
+        payload = LocateAcceptRequest(account_id=account_id, quote_req_id=quote_req_id)
+        return cast(dict[str, Any], await self._http.post(
             "/accounts/locates/accept",
             json=payload.model_dump(by_alias=True),
-        )
+        ))
 
     async def sell_locate(
         self,
@@ -206,19 +206,19 @@ class AsyncLocatesModule:
         quote_req_id: str,
         quantity: int,
         locate_type: LocateTypeStr | str,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Async version of :meth:`LocatesModule.sell_locate`."""
         payload = LocateSellRequest(
             account=account,
             symbol=symbol,
-            quoteReqID=quote_req_id,
+            quote_req_id=quote_req_id,
             quantity=quantity,
-            locateType=LocateTypeStr(locate_type),
+            locate_type=LocateTypeStr(locate_type),
         )
-        return await self._http.post(
+        return cast(dict[str, Any], await self._http.post(
             "/accounts/locates/sell",
             json=payload.model_dump(by_alias=True),
-        )
+        ))
 
     async def cancel_locate(self, account_id: str, quote_req_id: str) -> None:
         """Async version of :meth:`LocatesModule.cancel_locate`."""

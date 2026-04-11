@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from pydantic import ValidationError
 
@@ -143,7 +143,7 @@ class TradingModule:
         account_id: str,
         *,
         symbol: str | None = None,
-    ) -> dict | None:
+    ) -> dict[str, Any] | None:
         """Cancel all open orders for a specific account.
 
         Args:
@@ -154,11 +154,12 @@ class TradingModule:
             API confirmation dict, or ``None`` if no body is returned.
         """
         params = {"symbol": symbol} if symbol else None
-        return self._http.delete(
+        result = self._http.delete(
             "/accounts/orders",
             params=params,
             data={"account": account_id},
         )
+        return cast(dict[str, Any] | None, result)
 
     def is_easy_to_borrow(self, account_id: str, symbol: str) -> bool:
         """Check whether a symbol is easy to borrow for short selling.
@@ -177,7 +178,7 @@ class TradingModule:
             return bool(data.get("isEasyToBorrow", False))
         return bool(data)
 
-    def get_routes(self, account_id: str) -> list[dict]:
+    def get_routes(self, account_id: str) -> list[dict[str, Any]]:
         """Retrieve all available trading routes for an account.
 
         Args:
@@ -188,8 +189,8 @@ class TradingModule:
         """
         data = self._http.get(f"/accounts/{account_id}/routes")
         if isinstance(data, dict):
-            return data.get("routes", [])
-        return data or []
+            return cast(list[dict[str, Any]], data.get("routes", []))
+        return cast(list[dict[str, Any]], data or [])
 
 
 class AsyncTradingModule:
@@ -271,14 +272,15 @@ class AsyncTradingModule:
         account_id: str,
         *,
         symbol: str | None = None,
-    ) -> dict | None:
+    ) -> dict[str, Any] | None:
         """Async version of :meth:`TradingModule.cancel_all_orders`."""
         params = {"symbol": symbol} if symbol else None
-        return await self._http.delete(
+        result = await self._http.delete(
             "/accounts/orders",
             params=params,
             data={"account": account_id},
         )
+        return cast(dict[str, Any] | None, result)
 
     async def is_easy_to_borrow(self, account_id: str, symbol: str) -> bool:
         """Async version of :meth:`TradingModule.is_easy_to_borrow`."""
@@ -289,10 +291,10 @@ class AsyncTradingModule:
             return bool(data.get("isEasyToBorrow", False))
         return bool(data)
 
-    async def get_routes(self, account_id: str) -> list[dict]:
+    async def get_routes(self, account_id: str) -> list[dict[str, Any]]:
         """Async version of :meth:`TradingModule.get_routes`."""
         data = await self._http.get(f"/accounts/{account_id}/routes")
         if isinstance(data, dict):
-            return data.get("routes", [])
-        return data or []
+            return cast(list[dict[str, Any]], data.get("routes", []))
+        return cast(list[dict[str, Any]], data or [])
 

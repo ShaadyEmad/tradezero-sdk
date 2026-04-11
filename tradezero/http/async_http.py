@@ -99,7 +99,7 @@ class AsyncHTTPClient:
 
     # ── Internal ──────────────────────────────────────────────────────────────
 
-    @sdk_retry  # type: ignore[misc]
+    @sdk_retry
     async def _request(
         self,
         method: str,

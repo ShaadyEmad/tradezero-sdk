@@ -99,7 +99,7 @@ class SyncHTTPClient:
 
     # ── Internal ──────────────────────────────────────────────────────────────
 
-    @sdk_retry  # type: ignore[misc]
+    @sdk_retry
     def _request(
         self,
         method: str,

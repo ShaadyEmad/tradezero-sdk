@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import AliasChoices, BaseModel, Field
 
 
@@ -82,7 +84,7 @@ class AccountPnL(BaseModel):
     equity_ratio: float = Field(alias="equityRatio")
     exposure: float = Field(default=0.0)
     option_cash_used: float = Field(default=0.0, alias="optionCashUsed")
-    pnl: list[dict] = Field(default_factory=list)
+    pnl: list[dict[str, Any]] = Field(default_factory=list)
     shares_traded: float = Field(alias="sharesTraded")
     total_unrealized: float = Field(alias="totalUnrealized")
     used_leverage: float = Field(alias="usedLeverage")
