@@ -10,7 +10,6 @@ from tradezero import TradeZeroClient
 BASE = "https://webapi.tradezero.com/v1/api"
 CREDS = {"api_key": "test-key", "api_secret": "test-secret"}
 
-# Full account payload matching the real API response structure
 ACCOUNT_PAYLOAD = {
     "account": "ACC1",
     "accountStatus": "Active",
@@ -48,17 +47,13 @@ PNL_PAYLOAD = {
 }
 
 
-# ── list_accounts ─────────────────────────────────────────────────────────────
-
-
-@respx.mock
 def test_list_accounts_returns_account_objects() -> None:
-    """list_accounts parses all API fields into Account objects."""
-    respx.get(f"{BASE}/accounts").mock(
-        return_value=httpx.Response(200, json=[ACCOUNT_PAYLOAD])
-    )
-    client = TradeZeroClient(**CREDS)
-    accounts = client.accounts.list_accounts()
+    with respx.mock as mock:
+        mock.get(f"{BASE}/accounts").mock(
+            return_value=httpx.Response(200, json=[ACCOUNT_PAYLOAD])
+        )
+        client = TradeZeroClient(**CREDS)
+        accounts = client.accounts.list_accounts()
 
     assert len(accounts) == 1
     acct = accounts[0]
@@ -70,51 +65,44 @@ def test_list_accounts_returns_account_objects() -> None:
     assert acct.used_leverage == 1.5
 
 
-@respx.mock
 def test_list_accounts_wrapped_in_dict() -> None:
-    """list_accounts handles an API response wrapped in {'accounts': [...]}."""
-    respx.get(f"{BASE}/accounts").mock(
-        return_value=httpx.Response(200, json={"accounts": [ACCOUNT_PAYLOAD]})
-    )
-    client = TradeZeroClient(**CREDS)
-    accounts = client.accounts.list_accounts()
+    with respx.mock as mock:
+        mock.get(f"{BASE}/accounts").mock(
+            return_value=httpx.Response(200, json={"accounts": [ACCOUNT_PAYLOAD]})
+        )
+        client = TradeZeroClient(**CREDS)
+        accounts = client.accounts.list_accounts()
     assert len(accounts) == 1
     assert accounts[0].account == "ACC1"
 
 
-@respx.mock
 def test_list_accounts_empty_response() -> None:
-    """list_accounts returns an empty list when the API returns []."""
-    respx.get(f"{BASE}/accounts").mock(
-        return_value=httpx.Response(200, json=[])
-    )
-    client = TradeZeroClient(**CREDS)
-    assert client.accounts.list_accounts() == []
+    with respx.mock as mock:
+        mock.get(f"{BASE}/accounts").mock(
+            return_value=httpx.Response(200, json=[])
+        )
+        client = TradeZeroClient(**CREDS)
+        assert client.accounts.list_accounts() == []
 
 
-@respx.mock
 def test_list_accounts_extra_fields_ignored() -> None:
-    """Account model ignores unknown extra fields from the API."""
     payload = dict(ACCOUNT_PAYLOAD, unknownFutureField="should-not-crash")
-    respx.get(f"{BASE}/accounts").mock(
-        return_value=httpx.Response(200, json=[payload])
-    )
-    client = TradeZeroClient(**CREDS)
-    accounts = client.accounts.list_accounts()
+    with respx.mock as mock:
+        mock.get(f"{BASE}/accounts").mock(
+            return_value=httpx.Response(200, json=[payload])
+        )
+        client = TradeZeroClient(**CREDS)
+        accounts = client.accounts.list_accounts()
     assert accounts[0].account == "ACC1"
 
 
-# ── get_account_details ───────────────────────────────────────────────────────
-
-
-@respx.mock
 def test_get_account_details_returns_account() -> None:
-    """get_account_details returns an Account (not AccountDetails) with all fields."""
-    respx.get(f"{BASE}/account/ACC1").mock(
-        return_value=httpx.Response(200, json=ACCOUNT_PAYLOAD)
-    )
-    client = TradeZeroClient(**CREDS)
-    acct = client.accounts.get_account_details("ACC1")
+    with respx.mock as mock:
+        mock.get(f"{BASE}/account/ACC1").mock(
+            return_value=httpx.Response(200, json=ACCOUNT_PAYLOAD)
+        )
+        client = TradeZeroClient(**CREDS)
+        acct = client.accounts.get_account_details("ACC1")
 
     from tradezero.models.accounts import Account
 
@@ -125,17 +113,13 @@ def test_get_account_details_returns_account() -> None:
     assert acct.total_commissions == 50.0
 
 
-# ── get_account_pnl ───────────────────────────────────────────────────────────
-
-
-@respx.mock
 def test_get_account_pnl_maps_all_fields() -> None:
-    """get_account_pnl maps all real API fields to the correct attributes."""
-    respx.get(f"{BASE}/accounts/ACC1/pnl").mock(
-        return_value=httpx.Response(200, json=PNL_PAYLOAD)
-    )
-    client = TradeZeroClient(**CREDS)
-    pnl = client.accounts.get_account_pnl("ACC1")
+    with respx.mock as mock:
+        mock.get(f"{BASE}/accounts/ACC1/pnl").mock(
+            return_value=httpx.Response(200, json=PNL_PAYLOAD)
+        )
+        client = TradeZeroClient(**CREDS)
+        pnl = client.accounts.get_account_pnl("ACC1")
 
     assert pnl.account_value == 75000.0
     assert pnl.day_pnl == 1200.0
@@ -147,13 +131,12 @@ def test_get_account_pnl_maps_all_fields() -> None:
     assert pnl.pnl == []
 
 
-@respx.mock
 def test_get_account_pnl_extra_fields_ignored() -> None:
-    """AccountPnL must not crash on extra fields returned by the API."""
     payload = dict(PNL_PAYLOAD, unknownFutureField="should-not-crash")
-    respx.get(f"{BASE}/accounts/ACC1/pnl").mock(
-        return_value=httpx.Response(200, json=payload)
-    )
-    client = TradeZeroClient(**CREDS)
-    pnl = client.accounts.get_account_pnl("ACC1")
+    with respx.mock as mock:
+        mock.get(f"{BASE}/accounts/ACC1/pnl").mock(
+            return_value=httpx.Response(200, json=payload)
+        )
+        client = TradeZeroClient(**CREDS)
+        pnl = client.accounts.get_account_pnl("ACC1")
     assert pnl.account_value == 75000.0

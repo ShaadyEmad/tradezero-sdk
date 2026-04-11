@@ -45,18 +45,14 @@ ORDER_RESPONSE = {
 }
 
 
-# ── accounts ──────────────────────────────────────────────────────────────────
-
-
 @pytest.mark.asyncio
-@respx.mock
 async def test_async_list_accounts() -> None:
-    """AsyncTradeZeroClient.accounts.list_accounts returns Account objects."""
-    respx.get(f"{BASE}/accounts").mock(
-        return_value=httpx.Response(200, json=[ACCOUNT_PAYLOAD])
-    )
-    async with AsyncTradeZeroClient(**CREDS) as client:
-        accounts = await client.accounts.list_accounts()
+    with respx.mock as mock:
+        mock.get(f"{BASE}/accounts").mock(
+            return_value=httpx.Response(200, json=[ACCOUNT_PAYLOAD])
+        )
+        async with AsyncTradeZeroClient(**CREDS) as client:
+            accounts = await client.accounts.list_accounts()
 
     assert len(accounts) == 1
     assert accounts[0].account == "ACC1"
@@ -64,67 +60,58 @@ async def test_async_list_accounts() -> None:
 
 
 @pytest.mark.asyncio
-@respx.mock
 async def test_async_get_account_details() -> None:
-    """AsyncTradeZeroClient.accounts.get_account_details returns an Account."""
-    respx.get(f"{BASE}/account/ACC1").mock(
-        return_value=httpx.Response(200, json=ACCOUNT_PAYLOAD)
-    )
-    async with AsyncTradeZeroClient(**CREDS) as client:
-        acct = await client.accounts.get_account_details("ACC1")
+    with respx.mock as mock:
+        mock.get(f"{BASE}/account/ACC1").mock(
+            return_value=httpx.Response(200, json=ACCOUNT_PAYLOAD)
+        )
+        async with AsyncTradeZeroClient(**CREDS) as client:
+            acct = await client.accounts.get_account_details("ACC1")
 
     assert acct.account == "ACC1"
     assert acct.equity == 50000.0
 
 
-# ── positions ─────────────────────────────────────────────────────────────────
-
-
 @pytest.mark.asyncio
-@respx.mock
 async def test_async_get_positions_with_unrealized_pnl() -> None:
-    """AsyncTradeZeroClient positions compute unrealized_pnl correctly."""
-    respx.get(f"{BASE}/accounts/ACC1/positions").mock(
-        return_value=httpx.Response(
-            200,
-            json=[
-                {
-                    "symbol": "AAPL",
-                    "shares": 100,
-                    "side": "Long",
-                    "priceAvg": 180.0,
-                    "priceClose": 190.0,
-                    "dayOvernight": "Day",
-                }
-            ],
+    with respx.mock as mock:
+        mock.get(f"{BASE}/accounts/ACC1/positions").mock(
+            return_value=httpx.Response(
+                200,
+                json=[
+                    {
+                        "symbol": "AAPL",
+                        "shares": 100,
+                        "side": "Long",
+                        "priceAvg": 180.0,
+                        "priceClose": 190.0,
+                        "dayOvernight": "Day",
+                    }
+                ],
+            )
         )
-    )
-    async with AsyncTradeZeroClient(**CREDS) as client:
-        positions = await client.positions.get_positions("ACC1")
+        async with AsyncTradeZeroClient(**CREDS) as client:
+            positions = await client.positions.get_positions("ACC1")
 
     assert len(positions) == 1
     assert positions[0].unrealized_pnl == pytest.approx(1000.0)
 
 
-# ── trading ───────────────────────────────────────────────────────────────────
-
-
 @pytest.mark.asyncio
-@respx.mock
 async def test_async_create_order() -> None:
-    """AsyncTradeZeroClient.trading.create_order returns an OrderResponse."""
-    respx.post(f"{BASE}/accounts/ACC1/order").mock(
-        return_value=httpx.Response(200, json=ORDER_RESPONSE)
-    )
-    async with AsyncTradeZeroClient(**CREDS) as client:
-        resp = await client.trading.create_order(
-            account_id="ACC1",
-            symbol="AAPL",
-            quantity=50,
-            side="Buy",
-            order_type="Market",
-            time_in_force="Day",
+    with respx.mock as mock:
+        mock.post(f"{BASE}/accounts/ACC1/order").mock(
+            return_value=httpx.Response(200, json=ORDER_RESPONSE)
         )
+        async with AsyncTradeZeroClient(**CREDS) as client:
+            resp = await client.trading.create_order(
+                account_id="ACC1",
+                symbol="AAPL",
+                quantity=50,
+                side="Buy",
+                order_type="Market",
+                time_in_force="Day",
+            )
 
     assert resp.account_id == "ACC1"
     assert resp.order_status == "Pending"
@@ -132,24 +119,23 @@ async def test_async_create_order() -> None:
 
 
 @pytest.mark.asyncio
-@respx.mock
 async def test_async_create_order_serializes_correct_body() -> None:
-    """Async create_order sends correct wire-format field names."""
-    route = respx.post(f"{BASE}/accounts/ACC1/order")
-    route.mock(return_value=httpx.Response(200, json=ORDER_RESPONSE))
+    with respx.mock as mock:
+        route = mock.post(f"{BASE}/accounts/ACC1/order")
+        route.mock(return_value=httpx.Response(200, json=ORDER_RESPONSE))
 
-    async with AsyncTradeZeroClient(**CREDS) as client:
-        await client.trading.create_order(
-            account_id="ACC1",
-            symbol="TSLA",
-            quantity=25,
-            side="Sell",
-            order_type="Limit",
-            time_in_force="GoodTillCancel",
-            limit_price=300.0,
-        )
+        async with AsyncTradeZeroClient(**CREDS) as client:
+            await client.trading.create_order(
+                account_id="ACC1",
+                symbol="TSLA",
+                quantity=25,
+                side="Sell",
+                order_type="Limit",
+                time_in_force="GoodTillCancel",
+                limit_price=300.0,
+            )
 
-    body = json.loads(route.calls[0].request.content)
+        body = json.loads(route.calls[0].request.content)
     assert body["side"] == "Sell"
     assert body["orderType"] == "Limit"
     assert body["orderQuantity"] == 25
@@ -157,71 +143,59 @@ async def test_async_create_order_serializes_correct_body() -> None:
 
 
 @pytest.mark.asyncio
-@respx.mock
 async def test_async_cancel_order() -> None:
-    """AsyncTradeZeroClient.trading.cancel_order sends DELETE without error."""
-    respx.delete(f"{BASE}/accounts/ACC1/orders/ORD-001").mock(
-        return_value=httpx.Response(204)
-    )
-    async with AsyncTradeZeroClient(**CREDS) as client:
-        await client.trading.cancel_order("ACC1", "ORD-001")
+    with respx.mock as mock:
+        mock.delete(f"{BASE}/accounts/ACC1/orders/ORD-001").mock(
+            return_value=httpx.Response(204)
+        )
+        async with AsyncTradeZeroClient(**CREDS) as client:
+            await client.trading.cancel_order("ACC1", "ORD-001")
 
 
 @pytest.mark.asyncio
-@respx.mock
 async def test_async_is_easy_to_borrow() -> None:
-    """AsyncTradeZeroClient.trading.is_easy_to_borrow returns correct bool."""
-    respx.get(f"{BASE}/accounts/ACC1/is-easy-to-borrow/symbol/AAPL").mock(
-        return_value=httpx.Response(200, json={"isEasyToBorrow": True})
-    )
-    async with AsyncTradeZeroClient(**CREDS) as client:
-        result = await client.trading.is_easy_to_borrow("ACC1", "AAPL")
+    with respx.mock as mock:
+        mock.get(f"{BASE}/accounts/ACC1/is-easy-to-borrow/symbol/AAPL").mock(
+            return_value=httpx.Response(200, json={"isEasyToBorrow": True})
+        )
+        async with AsyncTradeZeroClient(**CREDS) as client:
+            result = await client.trading.is_easy_to_borrow("ACC1", "AAPL")
 
     assert result is True
 
 
 @pytest.mark.asyncio
-@respx.mock
 async def test_async_cancel_all_orders() -> None:
-    """AsyncTradeZeroClient.trading.cancel_all_orders sends form data."""
-    route = respx.delete(f"{BASE}/accounts/orders")
-    route.mock(return_value=httpx.Response(200, json={"message": "All canceled"}))
+    with respx.mock as mock:
+        route = mock.delete(f"{BASE}/accounts/orders")
+        route.mock(return_value=httpx.Response(200, json={"message": "All canceled"}))
 
-    async with AsyncTradeZeroClient(**CREDS) as client:
-        result = await client.trading.cancel_all_orders("ACC1")
+        async with AsyncTradeZeroClient(**CREDS) as client:
+            result = await client.trading.cancel_all_orders("ACC1")
 
+        assert b"account=ACC1" in route.calls[0].request.content
     assert result == {"message": "All canceled"}
-    assert b"account=ACC1" in route.calls[0].request.content
-
-
-# ── locates ───────────────────────────────────────────────────────────────────
 
 
 @pytest.mark.asyncio
-@respx.mock
 async def test_async_request_quote() -> None:
-    """AsyncTradeZeroClient.locates.request_quote posts correct body."""
-    route = respx.post(f"{BASE}/accounts/locates/quote")
-    route.mock(return_value=httpx.Response(200, json={"locateQuoteSent": "ok"}))
+    with respx.mock as mock:
+        route = mock.post(f"{BASE}/accounts/locates/quote")
+        route.mock(return_value=httpx.Response(200, json={"locateQuoteSent": "ok"}))
 
-    async with AsyncTradeZeroClient(**CREDS) as client:
-        result = await client.locates.request_quote("ACC1", "GME", 500, "REQ-ASYNC-001")
+        async with AsyncTradeZeroClient(**CREDS) as client:
+            result = await client.locates.request_quote("ACC1", "GME", 500, "REQ-ASYNC-001")
 
+        body = json.loads(route.calls[0].request.content)
     assert result == {"locateQuoteSent": "ok"}
-    body = json.loads(route.calls[0].request.content)
     assert body["quoteReqID"] == "REQ-ASYNC-001"
 
 
-# ── client lifecycle ──────────────────────────────────────────────────────────
-
-
 def test_async_client_missing_api_key_raises_value_error() -> None:
-    """AsyncTradeZeroClient raises ValueError when api_key is not provided."""
     with pytest.raises(ValueError, match="api_key"):
         AsyncTradeZeroClient(api_key=None, api_secret="secret")  # type: ignore[arg-type]
 
 
 def test_async_client_missing_api_secret_raises_value_error() -> None:
-    """AsyncTradeZeroClient raises ValueError when api_secret is not provided."""
     with pytest.raises(ValueError, match="api_secret"):
         AsyncTradeZeroClient(api_key="key", api_secret=None)  # type: ignore[arg-type]
