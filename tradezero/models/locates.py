@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
 from pydantic import BaseModel, Field
 
 from tradezero.enums import LocateStatus, LocateTypeStr
@@ -91,7 +90,7 @@ class LocateHistoryItem(BaseModel):
 
     quote_req_id: str = Field(alias="quoteReqID")
     symbol: str
-    quantity: Optional[int] = None
+    quantity: int | None = None
     locate_status: LocateStatus = Field(alias="locateStatus")
     rate: float = Field(default=0.0)
 

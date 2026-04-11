@@ -91,7 +91,7 @@ class SyncHTTPClient:
 
     # ── Context-manager support ───────────────────────────────────────────────
 
-    def __enter__(self) -> "SyncHTTPClient":
+    def __enter__(self) -> SyncHTTPClient:
         return self
 
     def __exit__(self, *_: Any) -> None:

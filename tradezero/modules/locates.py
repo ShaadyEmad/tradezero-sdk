@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from tradezero.enums import LocateTypeStr
 from tradezero.models.locates import (
     LocateAcceptRequest,
     LocateHistoryItem,
@@ -11,11 +12,10 @@ from tradezero.models.locates import (
     LocateQuoteRequest,
     LocateSellRequest,
 )
-from tradezero.enums import LocateTypeStr
 
 if TYPE_CHECKING:
-    from tradezero.http.sync_http import SyncHTTPClient
     from tradezero.http.async_http import AsyncHTTPClient
+    from tradezero.http.sync_http import SyncHTTPClient
 
 
 class LocatesModule:
@@ -25,7 +25,7 @@ class LocatesModule:
         http: Configured synchronous HTTP client.
     """
 
-    def __init__(self, http: "SyncHTTPClient") -> None:
+    def __init__(self, http: SyncHTTPClient) -> None:
         self._http = http
 
     def request_quote(
@@ -155,7 +155,7 @@ class AsyncLocatesModule:
         http: Configured asynchronous HTTP client.
     """
 
-    def __init__(self, http: "AsyncHTTPClient") -> None:
+    def __init__(self, http: AsyncHTTPClient) -> None:
         self._http = http
 
     async def request_quote(

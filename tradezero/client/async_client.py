@@ -6,15 +6,15 @@ from typing import Any
 
 from tradezero.config import (
     DEFAULT_TIMEOUT,
-    base_url_from_env,
     api_key_from_env,
     api_secret_from_env,
+    base_url_from_env,
 )
 from tradezero.http.async_http import AsyncHTTPClient
 from tradezero.modules.accounts import AsyncAccountsModule
-from tradezero.modules.trading import AsyncTradingModule
-from tradezero.modules.positions import AsyncPositionsModule
 from tradezero.modules.locates import AsyncLocatesModule
+from tradezero.modules.positions import AsyncPositionsModule
+from tradezero.modules.trading import AsyncTradingModule
 
 
 class AsyncTradeZeroClient:
@@ -82,7 +82,7 @@ class AsyncTradeZeroClient:
         """Release the underlying async HTTP connection pool."""
         await self._http.aclose()
 
-    async def __aenter__(self) -> "AsyncTradeZeroClient":
+    async def __aenter__(self) -> AsyncTradeZeroClient:
         return self
 
     async def __aexit__(self, *_: Any) -> None:

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 tradezero-sdk -- Full Live Test Script
 =======================================
@@ -17,30 +16,28 @@ Usage:
 """
 
 import asyncio
+import os
 import sys
 import time
 import uuid
 from datetime import datetime, timedelta
+
+from tradezero import (
+    AsyncTradeZeroClient,
+    NotFoundError,
+    TradeZeroAPIError,
+    TradeZeroClient,
+    TradeZeroSDKError,
+)
+from tradezero.enums import LocateStatus, LocateTypeStr, OrderSide, OrderType, TimeInForce
 
 # Force UTF-8 output so symbols print correctly on all terminals
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 # ── Credentials ───────────────────────────────────────────────────────────────
-import os
-
 API_KEY    = os.environ.get("TZ_API_KEY",    "")
 API_SECRET = os.environ.get("TZ_API_SECRET", "")
-
-# ── SDK imports ───────────────────────────────────────────────────────────────
-from tradezero import (
-    AsyncTradeZeroClient,
-    TradeZeroClient,
-    TradeZeroAPIError,
-    TradeZeroSDKError,
-    NotFoundError,
-)
-from tradezero.enums import LocateStatus, LocateTypeStr, OrderSide, OrderType, TimeInForce
 
 # ── Display helpers ───────────────────────────────────────────────────────────
 PASS = "[PASS]"
@@ -111,12 +108,12 @@ def summary():
     print(f"  Failed : {failed}")
     print(f"  Skipped: {skipped}")
     if failed:
-        print(f"\n  Failed tests:")
+        print("\n  Failed tests:")
         for sec, name, status in results:
             if status == FAIL:
                 print(f"    * [{sec}] {name}")
     if skipped:
-        print(f"\n  Skipped (sensitive) tests:")
+        print("\n  Skipped (sensitive) tests:")
         for sec, name, status in results:
             if status == SKIP:
                 print(f"    ~ [{sec}] {name}")

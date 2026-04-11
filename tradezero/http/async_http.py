@@ -91,7 +91,7 @@ class AsyncHTTPClient:
 
     # ── Context-manager support ───────────────────────────────────────────────
 
-    async def __aenter__(self) -> "AsyncHTTPClient":
+    async def __aenter__(self) -> AsyncHTTPClient:
         return self
 
     async def __aexit__(self, *_: Any) -> None:

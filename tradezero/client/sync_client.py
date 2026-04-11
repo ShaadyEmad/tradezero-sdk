@@ -2,20 +2,19 @@
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
 from tradezero.config import (
     DEFAULT_TIMEOUT,
-    base_url_from_env,
     api_key_from_env,
     api_secret_from_env,
+    base_url_from_env,
 )
 from tradezero.http.sync_http import SyncHTTPClient
 from tradezero.modules.accounts import AccountsModule
-from tradezero.modules.trading import TradingModule
-from tradezero.modules.positions import PositionsModule
 from tradezero.modules.locates import LocatesModule
+from tradezero.modules.positions import PositionsModule
+from tradezero.modules.trading import TradingModule
 
 
 class TradeZeroClient:
@@ -86,7 +85,7 @@ class TradeZeroClient:
         """Release the underlying HTTP connection pool."""
         self._http.close()
 
-    def __enter__(self) -> "TradeZeroClient":
+    def __enter__(self) -> TradeZeroClient:
         return self
 
     def __exit__(self, *_: Any) -> None:

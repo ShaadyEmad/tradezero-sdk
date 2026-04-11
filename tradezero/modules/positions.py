@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 from tradezero.models.positions import Position
 
 if TYPE_CHECKING:
-    from tradezero.http.sync_http import SyncHTTPClient
     from tradezero.http.async_http import AsyncHTTPClient
+    from tradezero.http.sync_http import SyncHTTPClient
 
 
 class PositionsModule:
@@ -18,7 +18,7 @@ class PositionsModule:
         http: Configured synchronous HTTP client.
     """
 
-    def __init__(self, http: "SyncHTTPClient") -> None:
+    def __init__(self, http: SyncHTTPClient) -> None:
         self._http = http
 
     def get_positions(self, account_id: str) -> list[Position]:
@@ -50,7 +50,7 @@ class AsyncPositionsModule:
         http: Configured asynchronous HTTP client.
     """
 
-    def __init__(self, http: "AsyncHTTPClient") -> None:
+    def __init__(self, http: AsyncHTTPClient) -> None:
         self._http = http
 
     async def get_positions(self, account_id: str) -> list[Position]:

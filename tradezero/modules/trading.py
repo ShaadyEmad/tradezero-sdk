@@ -23,7 +23,7 @@ class TradingModule:
         http: Configured synchronous HTTP client.
     """
 
-    def __init__(self, http: "SyncHTTPClient") -> None:
+    def __init__(self, http: SyncHTTPClient) -> None:
         self._http = http
 
     def create_order(
@@ -199,7 +199,7 @@ class AsyncTradingModule:
         http: Configured asynchronous HTTP client.
     """
 
-    def __init__(self, http: "AsyncHTTPClient") -> None:
+    def __init__(self, http: AsyncHTTPClient) -> None:
         self._http = http
 
     async def create_order(

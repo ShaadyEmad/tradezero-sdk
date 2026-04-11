@@ -1,12 +1,11 @@
 """Enumerations used across the TradeZero API."""
 
-from enum import Enum
-
+from enum import Enum, StrEnum
 
 # ── Order enums ───────────────────────────────────────────────────────────────
 
 
-class OrderSide(str, Enum):
+class OrderSide(StrEnum):
     """Direction of a trade order.
 
     Values match the TradeZero API wire format exactly.
@@ -16,7 +15,7 @@ class OrderSide(str, Enum):
     SELL = "Sell"
 
 
-class OrderType(str, Enum):
+class OrderType(StrEnum):
     """Execution style of a trade order.
 
     Values match the TradeZero API wire format exactly.
@@ -28,7 +27,7 @@ class OrderType(str, Enum):
     STOP_LIMIT = "StopLimit"
 
 
-class TimeInForce(str, Enum):
+class TimeInForce(StrEnum):
     """Time-in-force instructions for a trade order.
 
     Values match the TradeZero API wire format exactly.
@@ -44,7 +43,7 @@ class TimeInForce(str, Enum):
     GTC_PLUS = "GTC_Plus"
 
 
-class SecurityType(str, Enum):
+class SecurityType(StrEnum):
     """Type of security for an order.
 
     Values match the TradeZero API wire format exactly.
@@ -70,7 +69,7 @@ class LocateStatus(int, Enum):
     QUOTING = 81
 
 
-class LocateTypeStr(str, Enum):
+class LocateTypeStr(StrEnum):
     """Human-readable locate type strings."""
 
     UNKNOWN = "Unknown"

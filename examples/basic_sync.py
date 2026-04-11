@@ -7,7 +7,7 @@ Set your credentials as environment variables before running:
     python examples/basic_sync.py
 """
 
-from tradezero import AuthenticationError, TradeZeroClient, TradeZeroAPIError
+from tradezero import AuthenticationError, TradeZeroAPIError, TradeZeroClient
 
 
 def main() -> None:

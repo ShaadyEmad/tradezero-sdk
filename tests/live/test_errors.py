@@ -1,7 +1,8 @@
 import pytest
+
 from tradezero import TradeZeroClient
-from tradezero.exceptions import TradeZeroAPIError, APIValidationError
 from tradezero.enums import OrderSide, OrderType, TimeInForce
+from tradezero.exceptions import APIValidationError, TradeZeroAPIError
 
 
 @pytest.mark.live

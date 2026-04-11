@@ -2,7 +2,6 @@
 
 import pytest
 import respx
-import httpx
 
 BASE = "https://webapi.tradezero.com/v1/api"
 

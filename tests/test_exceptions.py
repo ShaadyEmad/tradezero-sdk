@@ -1,10 +1,10 @@
 """Unit tests for exception mapping."""
 
-import respx
 import httpx
 import pytest
+import respx
 
-from tradezero import TradeZeroClient, RateLimitError, AuthenticationError, NotFoundError
+from tradezero import AuthenticationError, NotFoundError, RateLimitError, TradeZeroClient
 
 BASE = "https://webapi.tradezero.com/v1/api"
 CREDS = {"api_key": "test-key", "api_secret": "test-secret"}
