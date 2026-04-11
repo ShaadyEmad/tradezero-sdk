@@ -1,0 +1,8 @@
+# Normalize line endings to LF in the repository, convert to CRLF on Windows checkout
+* text=auto eol=lf
+
+# Force binary treatment for these file types
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
