@@ -53,8 +53,8 @@ htmlcov/
 Thumbs.db
 ehthumbs.db
 
-# Poetry
-poetry.lock
+# Poetry lock is committed intentionally for reproducible CI builds
+# poetry.lock
 
 # Jupyter
 .ipynb_checkpoints/
