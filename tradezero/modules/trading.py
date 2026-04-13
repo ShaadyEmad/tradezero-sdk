@@ -187,7 +187,7 @@ class TradingModule:
                 trades=[TradeRecord.model_validate(i) for i in data]
             )
         if isinstance(data, dict):
-            raw_trades = data.get("trades", data.get("orders", []))
+            raw_trades = data.get("trades", data.get("orders", [])) or []
             trades = [TradeRecord.model_validate(i) for i in raw_trades]
             return PaginatedTradeResponse.model_validate({**data, "trades": trades})
         return PaginatedTradeResponse()
@@ -356,7 +356,7 @@ class AsyncTradingModule:
                 trades=[TradeRecord.model_validate(i) for i in data]
             )
         if isinstance(data, dict):
-            raw_trades = data.get("trades", data.get("orders", []))
+            raw_trades = data.get("trades", data.get("orders", [])) or []
             trades = [TradeRecord.model_validate(i) for i in raw_trades]
             return PaginatedTradeResponse.model_validate({**data, "trades": trades})
         return PaginatedTradeResponse()
