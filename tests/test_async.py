@@ -243,7 +243,12 @@ async def test_async_list_historical_orders_paginated() -> None:
         ).mock(
             return_value=httpx.Response(
                 200,
-                json={"trades": [TRADE_RECORD_PAYLOAD], "page": 1, "pageSize": 100, "totalCount": 1},
+                json={
+                    "trades": [TRADE_RECORD_PAYLOAD],
+                    "page": 1,
+                    "pageSize": 100,
+                    "totalCount": 1,
+                },
             )
         )
         async with AsyncTradeZeroClient(**CREDS) as client:

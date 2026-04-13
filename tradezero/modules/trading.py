@@ -9,7 +9,13 @@ from pydantic import ValidationError
 
 from tradezero.enums import OrderSide, OrderType, SecurityType, TimeInForce
 from tradezero.exceptions import APIValidationError
-from tradezero.models.orders import CreateOrderRequest, Order, OrderResponse, PaginatedTradeResponse, TradeRecord
+from tradezero.models.orders import (
+    CreateOrderRequest,
+    Order,
+    OrderResponse,
+    PaginatedTradeResponse,
+    TradeRecord,
+)
 
 if TYPE_CHECKING:
     from tradezero.http.async_http import AsyncHTTPClient
