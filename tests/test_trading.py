@@ -274,3 +274,101 @@ def test_get_routes_empty_response() -> None:
         )
         client = TradeZeroClient(**CREDS)
         assert client.trading.get_routes("ACC1") == []
+
+
+SINGLE_ORDER = {
+    "clientOrderId": "ORD-042",
+    "symbol": "TSLA",
+    "side": "Buy",
+    "quantity": 50,
+    "orderType": "Limit",
+    "timeInForce": "Day",
+    "orderStatus": "new",
+    "filledQuantity": 0,
+    "averagePrice": 0.0,
+    "limitPrice": 200.0,
+}
+
+TRADE_RECORD = {
+    "accountId": "ACC1",
+    "tradeId": 9999,
+    "symbol": "AAPL",
+    "qty": 100,
+    "price": 185.0,
+    "side": "Buy",
+    "tradeDate": "2026-01-01T10:00:00Z",
+    "settleDate": "2026-01-03T00:00:00Z",
+    "entryDate": "2026-01-01T09:59:00Z",
+    "grossProceeds": 18500.0,
+    "netProceeds": 18475.0,
+    "commission": 5.0,
+    "canceled": False,
+    "currency": "USD",
+}
+
+
+def test_get_order_returns_order() -> None:
+    with respx.mock as mock:
+        mock.get(f"{BASE}/accounts/ACC1/order/ORD-042").mock(
+            return_value=httpx.Response(200, json=SINGLE_ORDER)
+        )
+        client = TradeZeroClient(**CREDS)
+        order = client.trading.get_order("ACC1", "ORD-042")
+    assert order.client_order_id == "ORD-042"
+    assert order.symbol == "TSLA"
+    assert order.side == "Buy"
+    assert order.quantity == 50
+    assert order.limit_price == 200.0
+
+
+def test_get_order_uses_singular_order_path() -> None:
+    with respx.mock as mock:
+        route = mock.get(f"{BASE}/accounts/ACC1/order/ORD-042")
+        route.mock(return_value=httpx.Response(200, json=SINGLE_ORDER))
+        client = TradeZeroClient(**CREDS)
+        client.trading.get_order("ACC1", "ORD-042")
+        url = str(route.calls[0].request.url)
+    assert "/order/ORD-042" in url
+    assert "/orders/" not in url
+
+
+def test_list_historical_orders_paginated_list_response() -> None:
+    with respx.mock as mock:
+        mock.get(
+            f"{BASE}/accounts/ACC1/orders-with-pagination/start-date/2026-01-01"
+        ).mock(return_value=httpx.Response(200, json=[TRADE_RECORD]))
+        client = TradeZeroClient(**CREDS)
+        result = client.trading.list_historical_orders_paginated("ACC1", "2026-01-01")
+    assert len(result.trades) == 1
+    assert result.trades[0].trade_id == 9999
+    assert result.trades[0].symbol == "AAPL"
+    assert result.page is None
+
+
+def test_list_historical_orders_paginated_dict_response_with_metadata() -> None:
+    with respx.mock as mock:
+        route = mock.get(
+            f"{BASE}/accounts/ACC1/orders-with-pagination/start-date/2026-01-01"
+        )
+        route.mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "trades": [TRADE_RECORD],
+                    "page": 2,
+                    "pageSize": 50,
+                    "totalCount": 120,
+                },
+            )
+        )
+        client = TradeZeroClient(**CREDS)
+        result = client.trading.list_historical_orders_paginated(
+            "ACC1", "2026-01-01", page=2, page_size=50
+        )
+        request_url = str(route.calls[0].request.url)
+    assert len(result.trades) == 1
+    assert result.page == 2
+    assert result.page_size == 50
+    assert result.total_count == 120
+    assert "page=2" in request_url
+    assert "pageSize=50" in request_url

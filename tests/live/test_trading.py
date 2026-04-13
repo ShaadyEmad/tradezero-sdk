@@ -98,3 +98,67 @@ def test_async_order_lifecycle():
             await client.trading.cancel_order(target, client_order_id)
 
     asyncio.run(_run())
+
+
+@pytest.mark.live
+def test_sync_get_order(sync_client):
+    """Test get_order: create an order, retrieve it by ID, then cancel it."""
+    accounts = sync_client.accounts.list_accounts()
+    target = accounts[0].account
+
+    client_order_id = str(uuid.uuid4())
+    sync_client.trading.create_order(
+        target, "SPY", 1, OrderSide.BUY, OrderType.LIMIT, TimeInForce.DAY,
+        limit_price=100.0,
+        client_order_id=client_order_id,
+    )
+    time.sleep(1)
+
+    order = sync_client.trading.get_order(target, client_order_id)
+    assert order.client_order_id == client_order_id
+    assert order.symbol == "SPY"
+    assert order.order_status is not None
+
+    sync_client.trading.cancel_order(target, client_order_id)
+
+
+@pytest.mark.live
+def test_sync_list_historical_orders_paginated(sync_client):
+    """Verify paginated historical orders returns a PaginatedTradeResponse."""
+    accounts = sync_client.accounts.list_accounts()
+    target = accounts[0].account
+    start_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+
+    result = sync_client.trading.list_historical_orders_paginated(
+        target, start_date=start_date, page=1, page_size=50
+    )
+    assert isinstance(result.trades, list)
+
+
+@pytest.mark.live
+def test_async_get_order():
+    """Async test: create an order, retrieve it by ID, then cancel."""
+    client_order_id = str(uuid.uuid4())
+
+    async def _run():
+        async with AsyncTradeZeroClient(
+            api_key=os.environ.get("TZ_API_KEY"),
+            api_secret=os.environ.get("TZ_API_SECRET"),
+        ) as client:
+            accounts = await client.accounts.list_accounts()
+            target = accounts[0].account
+
+            await client.trading.create_order(
+                target, "SPY", 1, OrderSide.BUY, OrderType.LIMIT, TimeInForce.DAY,
+                limit_price=100.0,
+                client_order_id=client_order_id,
+            )
+            await asyncio.sleep(1)
+
+            order = await client.trading.get_order(target, client_order_id)
+            assert order.client_order_id == client_order_id
+            assert order.symbol == "SPY"
+
+            await client.trading.cancel_order(target, client_order_id)
+
+    asyncio.run(_run())

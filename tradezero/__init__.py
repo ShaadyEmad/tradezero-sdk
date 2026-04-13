@@ -14,7 +14,7 @@ from tradezero.exceptions import (
     TradeZeroAPIError,
     TradeZeroSDKError,
 )
-from tradezero.models.orders import TradeRecord
+from tradezero.models.orders import Order, OrderResponse, PaginatedTradeResponse, TradeRecord
 
 __all__ = [
     "TradeZeroClient",
@@ -29,7 +29,10 @@ __all__ = [
     "NotFoundError",
     "InsufficientFundsError",
     "ServerError",
+    "Order",
+    "OrderResponse",
+    "PaginatedTradeResponse",
     "TradeRecord",
 ]
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"

@@ -142,3 +142,24 @@ class TradeRecord(BaseModel):
     notes: str | None = None
 
     model_config = {"populate_by_name": True, "extra": "ignore"}
+
+
+class PaginatedTradeResponse(BaseModel):
+    """Response from the paginated historical orders endpoint.
+
+    Returned by ``GET /accounts/:accountId/orders-with-pagination/start-date/:startDate``.
+    Supports up to one year of history (versus one week for the non-paginated endpoint).
+
+    Attributes:
+        trades: The list of trade records for the current page.
+        page: Current page number (1-based), if returned by the API.
+        page_size: Number of records per page, if returned by the API.
+        total_count: Total number of records across all pages, if returned.
+    """
+
+    trades: list[TradeRecord] = Field(default_factory=list)
+    page: int | None = None
+    page_size: int | None = Field(default=None, alias="pageSize")
+    total_count: int | None = Field(default=None, alias="totalCount")
+
+    model_config = {"populate_by_name": True, "extra": "ignore"}

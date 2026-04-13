@@ -191,6 +191,72 @@ async def test_async_request_quote() -> None:
     assert body["quoteReqID"] == "REQ-ASYNC-001"
 
 
+SINGLE_ORDER_PAYLOAD = {
+    "clientOrderId": "ORD-ASYNC-01",
+    "symbol": "NVDA",
+    "side": "Buy",
+    "quantity": 20,
+    "orderType": "Market",
+    "timeInForce": "Day",
+    "orderStatus": "new",
+    "filledQuantity": 0,
+    "averagePrice": 0.0,
+}
+
+TRADE_RECORD_PAYLOAD = {
+    "accountId": "ACC1",
+    "tradeId": 7777,
+    "symbol": "NVDA",
+    "qty": 20,
+    "price": 800.0,
+    "side": "Buy",
+    "tradeDate": "2026-01-01T10:00:00Z",
+    "settleDate": "2026-01-03T00:00:00Z",
+    "entryDate": "2026-01-01T09:59:00Z",
+    "grossProceeds": 16000.0,
+    "netProceeds": 15990.0,
+    "commission": 5.0,
+    "canceled": False,
+    "currency": "USD",
+}
+
+
+@pytest.mark.asyncio
+async def test_async_get_order_returns_order() -> None:
+    with respx.mock as mock:
+        mock.get(f"{BASE}/accounts/ACC1/order/ORD-ASYNC-01").mock(
+            return_value=httpx.Response(200, json=SINGLE_ORDER_PAYLOAD)
+        )
+        async with AsyncTradeZeroClient(**CREDS) as client:
+            order = await client.trading.get_order("ACC1", "ORD-ASYNC-01")
+
+    assert order.client_order_id == "ORD-ASYNC-01"
+    assert order.symbol == "NVDA"
+    assert order.quantity == 20
+
+
+@pytest.mark.asyncio
+async def test_async_list_historical_orders_paginated() -> None:
+    with respx.mock as mock:
+        mock.get(
+            f"{BASE}/accounts/ACC1/orders-with-pagination/start-date/2026-01-01"
+        ).mock(
+            return_value=httpx.Response(
+                200,
+                json={"trades": [TRADE_RECORD_PAYLOAD], "page": 1, "pageSize": 100, "totalCount": 1},
+            )
+        )
+        async with AsyncTradeZeroClient(**CREDS) as client:
+            result = await client.trading.list_historical_orders_paginated(
+                "ACC1", "2026-01-01"
+            )
+
+    assert len(result.trades) == 1
+    assert result.trades[0].trade_id == 7777
+    assert result.page == 1
+    assert result.total_count == 1
+
+
 def test_async_client_missing_api_key_raises_value_error() -> None:
     with pytest.raises(ValueError, match="api_key"):
         AsyncTradeZeroClient(api_key=None, api_secret="secret")  # type: ignore[arg-type]

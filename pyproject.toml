@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "tradezero-sdk"
-version = "1.0.1"
+version = "1.0.2"
 description = "A production-ready Python SDK for the TradeZero REST API."
 authors = ["Shady Emad <ShadyEmadContact@gmail.com>"]
 readme = "README.md"

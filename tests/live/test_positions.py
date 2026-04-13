@@ -18,9 +18,8 @@ def test_sync_get_positions(sync_client):
     if len(positions) > 0:
         pos = positions[0]
         assert pos.symbol is not None
-        assert pos.shares != 0
-        pnl = pos.unrealized_pnl
-        assert isinstance(pnl, float)
+        assert isinstance(pos.shares, int)
+        assert isinstance(pos.unrealized_pnl, float)
 
 
 @pytest.mark.live

@@ -9,7 +9,7 @@ from pydantic import ValidationError
 
 from tradezero.enums import OrderSide, OrderType, SecurityType, TimeInForce
 from tradezero.exceptions import APIValidationError
-from tradezero.models.orders import CreateOrderRequest, Order, OrderResponse, TradeRecord
+from tradezero.models.orders import CreateOrderRequest, Order, OrderResponse, PaginatedTradeResponse, TradeRecord
 
 if TYPE_CHECKING:
     from tradezero.http.async_http import AsyncHTTPClient
@@ -84,6 +84,22 @@ class TradingModule:
         )
         return OrderResponse.model_validate(data)
 
+    def get_order(self, account_id: str, order_id: str) -> Order:
+        """Return a single current-day order by its order ID.
+
+        Args:
+            account_id: Account identifier.
+            order_id: The unique order identifier to retrieve.
+
+        Returns:
+            An :class:`~tradezero.models.orders.Order` record.
+
+        Raises:
+            NotFoundError: If the order does not exist or is not from today.
+        """
+        data = self._http.get(f"/accounts/{account_id}/order/{order_id}")
+        return Order.model_validate(data)
+
     def list_orders(self, account_id: str) -> list[Order]:
         """Return all orders (pending, filled, canceled) for today.
 
@@ -126,6 +142,49 @@ class TradingModule:
             return [TradeRecord.model_validate(item) for item in data]
         except ValidationError as e:
             raise APIValidationError(str(e)) from e
+
+    def list_historical_orders_paginated(
+        self,
+        account_id: str,
+        start_date: str,
+        *,
+        page: int | None = None,
+        page_size: int | None = None,
+    ) -> PaginatedTradeResponse:
+        """Return up to one year of historical trade records with pagination.
+
+        Unlike :meth:`list_historical_orders` (limited to one week), this endpoint
+        supports date ranges up to one year. Only available for live production
+        accounts — paper trading accounts are not supported.
+
+        Args:
+            account_id: Account identifier to query.
+            start_date: Start of the date range in ``YYYY-MM-DD`` format.
+            page: Page number to retrieve (1-based). Pass ``None`` to omit.
+            page_size: Number of records per page. Pass ``None`` to omit.
+
+        Returns:
+            A :class:`~tradezero.models.orders.PaginatedTradeResponse` with the
+            trade records and optional pagination metadata.
+        """
+        params: dict[str, int] = {}
+        if page is not None:
+            params["page"] = page
+        if page_size is not None:
+            params["pageSize"] = page_size
+
+        path = f"/accounts/{account_id}/orders-with-pagination/start-date/{start_date}"
+        data = self._http.get(path, params=params or None)
+
+        if isinstance(data, list):
+            return PaginatedTradeResponse(
+                trades=[TradeRecord.model_validate(i) for i in data]
+            )
+        if isinstance(data, dict):
+            raw_trades = data.get("trades", data.get("orders", []))
+            trades = [TradeRecord.model_validate(i) for i in raw_trades]
+            return PaginatedTradeResponse.model_validate({**data, "trades": trades})
+        return PaginatedTradeResponse()
 
     def cancel_order(self, account_id: str, client_order_id: str) -> None:
         """Cancel a specific open order by its client order ID.
@@ -241,6 +300,11 @@ class AsyncTradingModule:
         )
         return OrderResponse.model_validate(data)
 
+    async def get_order(self, account_id: str, order_id: str) -> Order:
+        """Async version of :meth:`TradingModule.get_order`."""
+        data = await self._http.get(f"/accounts/{account_id}/order/{order_id}")
+        return Order.model_validate(data)
+
     async def list_orders(self, account_id: str) -> list[Order]:
         """Async version of :meth:`TradingModule.list_orders`."""
         data = await self._http.get(f"/accounts/{account_id}/orders")
@@ -262,6 +326,34 @@ class AsyncTradingModule:
             return [TradeRecord.model_validate(item) for item in data]
         except ValidationError as e:
             raise APIValidationError(str(e)) from e
+
+    async def list_historical_orders_paginated(
+        self,
+        account_id: str,
+        start_date: str,
+        *,
+        page: int | None = None,
+        page_size: int | None = None,
+    ) -> PaginatedTradeResponse:
+        """Async version of :meth:`TradingModule.list_historical_orders_paginated`."""
+        params: dict[str, int] = {}
+        if page is not None:
+            params["page"] = page
+        if page_size is not None:
+            params["pageSize"] = page_size
+
+        path = f"/accounts/{account_id}/orders-with-pagination/start-date/{start_date}"
+        data = await self._http.get(path, params=params or None)
+
+        if isinstance(data, list):
+            return PaginatedTradeResponse(
+                trades=[TradeRecord.model_validate(i) for i in data]
+            )
+        if isinstance(data, dict):
+            raw_trades = data.get("trades", data.get("orders", []))
+            trades = [TradeRecord.model_validate(i) for i in raw_trades]
+            return PaginatedTradeResponse.model_validate({**data, "trades": trades})
+        return PaginatedTradeResponse()
 
     async def cancel_order(self, account_id: str, client_order_id: str) -> None:
         """Async version of :meth:`TradingModule.cancel_order`."""

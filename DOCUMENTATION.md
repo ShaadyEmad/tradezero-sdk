@@ -407,6 +407,33 @@ client.trading.create_order(account_id, "GME", 100, "Sell", "Limit", "Day",
 
 ---
 
+### `get_order(account_id: str, order_id: str) -> Order`
+
+Retrieves a single current-day order by its order ID.
+
+```python
+order = client.trading.get_order("ABC123", "ORD-001")
+print(f"{order.client_order_id} | {order.symbol} | {order.side}")
+print(f"  Status:   {order.order_status}")
+print(f"  Qty:      {order.quantity} (filled: {order.filled_quantity})")
+print(f"  Type:     {order.order_type} / {order.time_in_force}")
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `account_id` | `str` | The account identifier |
+| `order_id` | `str` | The unique order identifier to retrieve |
+
+**Returns:** `Order`
+
+**Raises:** `NotFoundError` if the order does not exist or is not from today.
+
+> **Implementation note:** Uses the singular path `GET /accounts/{id}/order/{orderId}`, consistent with the `create_order` endpoint.
+
+---
+
 ### `list_orders(account_id: str) -> list[Order]`
 
 Returns all orders for the current trading day (all statuses: open, filled, cancelled).
@@ -462,6 +489,41 @@ for trade in trades:
 **Returns:** `list[TradeRecord]`
 
 > **Note:** The API uses a path-parameter URL: `GET /accounts/{id}/orders/start-date/{startDate}`
+
+---
+
+### `list_historical_orders_paginated(account_id: str, start_date: str, *, page: int | None = None, page_size: int | None = None) -> PaginatedTradeResponse`
+
+Returns up to **one year** of historical trade records with pagination support. Use this instead of `list_historical_orders` when you need data beyond one week or want to page through large result sets.
+
+Only available for live production accounts — paper trading accounts are not supported.
+
+```python
+from datetime import datetime, timedelta
+
+# Trades from the last 90 days, first page of 100
+start = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
+result = client.trading.list_historical_orders_paginated(
+    "ABC123", start_date=start, page=1, page_size=100
+)
+
+print(f"Page {result.page} — {len(result.trades)} trades (total: {result.total_count})")
+for trade in result.trades:
+    print(f"  {trade.trade_date} | {trade.symbol} | {trade.qty} @ {trade.price}")
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `account_id` | `str` | The account identifier |
+| `start_date` | `str` | Start date in `YYYY-MM-DD` format |
+| `page` | `int \| None` | Page number to retrieve (1-based). Omitted if `None`. |
+| `page_size` | `int \| None` | Records per page. Omitted if `None`. |
+
+**Returns:** `PaginatedTradeResponse` — contains `trades: list[TradeRecord]` and optional `page`, `page_size`, `total_count` fields.
+
+> **Note:** Uses path `GET /accounts/{id}/orders-with-pagination/start-date/{startDate}`. Pagination query params are forwarded as `page` and `pageSize` when provided.
 
 ---
 

@@ -192,8 +192,10 @@ client = TradeZeroClient(
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `create_order(account_id, symbol, quantity, side, order_type, time_in_force, ...)` | `OrderResponse` | Place a new order |
+| `get_order(account_id, order_id)` | `Order` | Retrieve a single current-day order by ID |
 | `list_orders(account_id)` | `list[Order]` | Current-day orders (all statuses) |
 | `list_historical_orders(account_id, start_date)` | `list[TradeRecord]` | Trade records up to one week back |
+| `list_historical_orders_paginated(account_id, start_date, *, page=None, page_size=None)` | `PaginatedTradeResponse` | Paginated trade records up to one year back |
 | `cancel_order(account_id, client_order_id)` | `None` | Cancel a specific open order |
 | `cancel_all_orders(account_id, *, symbol=None)` | `dict \| None` | Cancel all open orders, optionally filtered by symbol |
 | `is_easy_to_borrow(account_id, symbol)` | `bool` | Check short-sell borrow availability |

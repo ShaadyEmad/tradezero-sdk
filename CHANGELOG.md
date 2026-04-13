@@ -7,6 +7,21 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and
 
 ---
 
+## [1.0.2] — 2026-04-13
+
+### Added
+
+- `trading.get_order(account_id, order_id)` — retrieve a single current-day order by its order ID
+  (`GET /accounts/:accountId/order/:orderId`). Both sync and async variants.
+- `trading.list_historical_orders_paginated(account_id, start_date, *, page, page_size)` — paginated
+  historical orders supporting up to one year of data (`GET /accounts/:accountId/orders-with-pagination/start-date/:startDate`).
+  Returns a `PaginatedTradeResponse` with `trades`, `page`, `page_size`, and `total_count` fields.
+  Both sync and async variants.
+- `PaginatedTradeResponse` model in `tradezero.models.orders` (and re-exported from `tradezero`).
+- `Order` and `OrderResponse` are now re-exported from the top-level `tradezero` package.
+
+---
+
 ## [1.0.1] — 2026-04-11
 
 ### Fixed
