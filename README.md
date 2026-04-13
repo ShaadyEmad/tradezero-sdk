@@ -18,6 +18,7 @@ TradeZero is an online broker offering direct-access trading for equities. This 
 
 | Resource | Description |
 |----------|-------------|
+| [TRADEZERO_API.md](TRADEZERO_API.md) | **TradeZero API documentation** — complete reference for all endpoints |
 | [DOCUMENTATION.md](DOCUMENTATION.md) | **Complete reference** — every class, method, model, enum, and exception explained in full |
 | [CHANGELOG.md](CHANGELOG.md) | Full version history and breaking-change notes |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to set up a dev environment and submit pull requests |
